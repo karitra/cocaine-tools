@@ -126,6 +126,7 @@ class BodyProcessor(object):
         self.headers = headers
         self.messages = []
 
+    @gen.coroutine
     def swallow(self, part):
         raise NotImplementedError
 
@@ -153,8 +154,9 @@ class ChunkedBodyProcessor(BodyProcessor):
                          httplib.responses.get(self.code, httplib.OK),
                          ''.join(self.messages), self.headers, chunked=True)
 
+    @gen.coroutine
     def swallow(self, part):
-        write_chunked(self.request, part)
+        yield write_chunked(self.request, part)
 
     def finish(self):
         finalize_chunked_response(
@@ -164,6 +166,7 @@ class ChunkedBodyProcessor(BodyProcessor):
 
 class CachedBodyProcessor(BodyProcessor):
 
+    @gen.coroutine
     def swallow(self, part):
         self.messages.append(part)
 
@@ -766,7 +769,7 @@ class CocaineProxy(object):
                     request.logger.debug("%s: received %d bytes as a body chunk (attempt %d)",
                                          app.id, len(body), attempts)
 
-                    processor.swallow(body)
+                    yield processor.swallow(body)
 
             except gen.TimeoutError as err:
                 on_error(app, err, '', httplib.GATEWAY_TIMEOUT)

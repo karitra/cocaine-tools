@@ -6,6 +6,7 @@ import re
 import struct
 
 from tornado import httputil
+from tornado import gen
 
 CRLF = '\r\n'
 
@@ -54,10 +55,14 @@ class Endpoints(object):
                 raise ValueError("Endpoint has to begin either unix:// or tcp:// %s" % i)
 
 
+@gen.coroutine
 def write_chunked(request, chunk):
-    request.connection.write(SIZE_OF_CHUNK_FMT.format(len(chunk)))
-    request.connection.write(chunk)
-    request.connection.write(CRLF)
+    yield request.connection.write(SIZE_OF_CHUNK_FMT.format(len(chunk)))
+    yield request.connection.write(chunk)
+    yield request.connection.write(CRLF)
+    # request.connection.write(SIZE_OF_CHUNK_FMT.format(len(chunk)))
+    # request.connection.write(chunk)
+    # request.connection.write(CRLF)
 
 
 def finalize_response(request, code, status):

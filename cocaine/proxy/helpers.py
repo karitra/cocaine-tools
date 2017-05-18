@@ -57,12 +57,9 @@ class Endpoints(object):
 
 @gen.coroutine
 def write_chunked(request, chunk):
-    yield request.connection.write(SIZE_OF_CHUNK_FMT.format(len(chunk)))
-    yield request.connection.write(chunk)
-    yield request.connection.write(CRLF)
-    # request.connection.write(SIZE_OF_CHUNK_FMT.format(len(chunk)))
-    # request.connection.write(chunk)
-    # request.connection.write(CRLF)
+    yield [ request.connection.write(SIZE_OF_CHUNK_FMT.format(len(chunk)))
+            request.connection.write(chunk)
+            request.connection.write(CRLF) ]
 
 
 def finalize_response(request, code, status):
